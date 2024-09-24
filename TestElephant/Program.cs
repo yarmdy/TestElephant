@@ -19,6 +19,8 @@ bingxiang.AddScoped<RedElephant>();
 bingxiang.AddSingleton<BlueElephant>();
 bingxiang.AddTransient<GreenElephant>();
 
+bingxiang.AddTransient(typeof(IList<>),typeof(List<>));
+
 
 
 // 放入馒头
@@ -75,7 +77,7 @@ var op = BigBingxiang.GetRequiredService<IOptionsMonitor<SystemSetting>>();
 op.OnChange(x => {
     Console.WriteLine(x.Desc);
 });
-
+var list = BigBingxiang.GetRequiredService<IList<string>>();
 
 // 使用autofac
 var autoBingxiangBuilder = new ContainerBuilder();
