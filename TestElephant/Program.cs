@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more informat
 
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -30,7 +32,7 @@ bingxiang.AddTransient(a=>new Mantou { Name="黄色馒头"});
 // 配置
 var configuration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory).AddJsonFile("appsettings.json",true,true).Build();
 //bingxiang.Configure<SystemSetting>(configuration);
-bingxiang.Configure<SystemSetting>(configuration.GetSection(null!));
+bingxiang.Configure<SystemSetting>(configuration.GetSection("Op"));
 bingxiang.Configure<SystemSetting>(op =>
 {
     op.Desc = op.Desc+1;
@@ -62,6 +64,8 @@ var red3 = BigBingxiang.GetRequiredService<RedElephant>();
 // 鱼的记忆
 var green3 = BigBingxiang.GetRequiredService<GreenElephant>();
 
+
+
 qun.ToList().ForEach(x => (x as IElephant).PutIn());
 (red as IElephant).PutIn();
 (blue as IElephant).PutIn();
@@ -72,12 +76,21 @@ op.OnChange(x => {
     Console.WriteLine(x.Desc);
 });
 
+
+// 使用autofac
+var autoBingxiangBuilder = new ContainerBuilder();
+// 把旧冰箱里的东西挪到autofac冰箱
+autoBingxiangBuilder.Populate(bingxiang);
+// autofac冰箱放入 比原生的多了一个属性注入
+autoBingxiangBuilder.RegisterType<PropertyClass>().As<PropertyClass>().InstancePerDependency().PropertiesAutowired();
+var autoBingxiang = autoBingxiangBuilder.Build();
+
+
+var newclass = autoBingxiang.Resolve<PropertyClass>();
+
 Console.WriteLine("end");
 
-while (true)
-{
-    Thread.Sleep(3000);
-}
+
 
 
 interface IElephant
@@ -121,4 +134,11 @@ class Mantou
 class SystemSetting
 {
     public string Desc { get; set; } = default!;
+}
+
+class PropertyClass
+{
+    public IEnumerable<IElephant> Elephants { get; set; } = default!;
+
+    public Lazy<RedElephant> RedElephant { get; set; } = default!; 
 }
